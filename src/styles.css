@@ -1,3 +1,17 @@
-/* You can add global styles to this file, and also import other style files */
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  @apply bg-[#f5f5f5] text-[#1a1a1a] antialiased;
+}
+
+.card {
+  @apply transition-all duration-300;
+}
+
+.text-muted {
+  @apply text-black/50;
+}

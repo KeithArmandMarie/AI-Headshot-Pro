@@ -114,10 +114,18 @@ export class HeadshotGenerator {
     this.generatedImage.set(null);
 
     try {
-      if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') {
-        throw new Error('API Key is missing or invalid. Please ensure GEMINI_API_KEY is set in your environment.');
+      let apiKey = '';
+      try {
+        apiKey = GEMINI_API_KEY;
+      } catch (e) {
+        throw new Error('GEMINI_API_KEY is not defined in the application build. Please check your build configuration.');
       }
-      const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
+      if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
+        throw new Error('API Key is empty or set to placeholder. Please ensure GEMINI_API_KEY is set in your environment variables.');
+      }
+      
+      const ai = new GoogleGenAI({ apiKey: apiKey });
       const base64Data = await this.fileToBase64(file);
       
       const response = await ai.models.generateContent({
@@ -174,7 +182,6 @@ export class HeadshotGenerator {
     const quality = this.selectedQualityId();
     
     if (quality === 'high') {
-      // Direct download for high quality
       const link = document.createElement('a');
       link.href = imageUrl;
       link.download = `ai-headshot-${this.selectedStyleId()}-high.png`;
@@ -182,7 +189,6 @@ export class HeadshotGenerator {
       return;
     }
 
-    // Process image for low/medium quality
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
