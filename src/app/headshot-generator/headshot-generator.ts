@@ -114,6 +114,9 @@ export class HeadshotGenerator {
     this.generatedImage.set(null);
 
     try {
+      if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') {
+        throw new Error('API Key is missing or invalid. Please ensure GEMINI_API_KEY is set in your environment.');
+      }
       const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
       const base64Data = await this.fileToBase64(file);
       
