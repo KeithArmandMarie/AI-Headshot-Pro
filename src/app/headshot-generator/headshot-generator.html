@@ -1,0 +1,190 @@
+<div class="min-h-screen bg-[#f5f5f5] text-[#1a1a1a] font-sans">
+  <!-- Header -->
+  <header class="bg-white border-b border-black/5 py-6 px-8 flex justify-between items-center sticky top-0 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+        <mat-icon class="text-white">camera_enhance</mat-icon>
+      </div>
+      <h1 class="text-xl font-semibold tracking-tight">AI Headshot Pro</h1>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="text-sm text-muted hidden sm:inline">Professional AI Photography</span>
+      <button (click)="reset()" class="p-2 hover:bg-black/5 rounded-full transition-colors" title="Start Over">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Left Column: Upload & Options -->
+    <div class="lg:col-span-5 space-y-8">
+      
+      <!-- Step 1: Upload -->
+      <section class="card bg-white p-8 rounded-3xl shadow-sm border border-black/5">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-bold">1</span>
+          <h2 class="text-lg font-semibold">Upload your selfie</h2>
+        </div>
+
+        @if (!previewUrl()) {
+          <label class="relative group cursor-pointer block">
+            <input type="file" class="hidden" (change)="onFileSelected($event)" accept="image/*">
+            <div class="border-2 border-dashed border-black/10 rounded-2xl p-12 text-center group-hover:border-black/30 transition-all bg-black/[0.02]">
+              <mat-icon class="text-4xl text-black/20 mb-4">cloud_upload</mat-icon>
+              <p class="text-sm font-medium">Click to upload or drag and drop</p>
+              <p class="text-xs text-muted mt-2">JPG, PNG or WebP (Max 5MB)</p>
+            </div>
+          </label>
+        } @else {
+          <div class="relative rounded-2xl overflow-hidden aspect-square bg-black/5 border border-black/5">
+            <img [src]="previewUrl()" alt="Selfie preview" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+            <button (click)="previewUrl.set(null); selectedFile.set(null)" class="absolute top-4 right-4 bg-white/90 backdrop-blur p-2 rounded-full shadow-lg hover:bg-white transition-colors">
+              <mat-icon class="text-sm">close</mat-icon>
+            </button>
+          </div>
+        }
+      </section>
+
+      <!-- Step 2: Select Style -->
+      <section class="card bg-white p-8 rounded-3xl shadow-sm border border-black/5">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-bold">2</span>
+          <h2 class="text-lg font-semibold">Choose your style</h2>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3">
+          @for (style of styles; track style.id) {
+            <button 
+              (click)="onStyleSelect(style.id)"
+              [class.ring-2]="selectedStyleId() === style.id"
+              [class.ring-black]="selectedStyleId() === style.id"
+              [class.bg-black]="selectedStyleId() === style.id"
+              [class.text-white]="selectedStyleId() === style.id"
+              class="flex items-center gap-4 p-4 rounded-2xl border border-black/5 text-left transition-all hover:border-black/20"
+            >
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center" [class.bg-white/10]="selectedStyleId() === style.id" [class.bg-black/5]="selectedStyleId() !== style.id">
+                <mat-icon>{{ style.icon }}</mat-icon>
+              </div>
+              <div class="flex-1">
+                <p class="font-semibold text-sm">{{ style.name }}</p>
+                <p class="text-xs opacity-70 line-clamp-1">{{ style.description }}</p>
+              </div>
+              @if (selectedStyleId() === style.id) {
+                <mat-icon class="text-sm">check_circle</mat-icon>
+              }
+            </button>
+          }
+        </div>
+      </section>
+
+      <!-- Step 3: Download Quality -->
+      <section class="card bg-white p-8 rounded-3xl shadow-sm border border-black/5">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-bold">3</span>
+          <h2 class="text-lg font-semibold">Download Quality</h2>
+        </div>
+
+        <div class="flex gap-2">
+          @for (opt of qualityOptions; track opt.id) {
+            <button 
+              (click)="selectedQualityId.set(opt.id)"
+              [class.bg-black]="selectedQualityId() === opt.id"
+              [class.text-white]="selectedQualityId() === opt.id"
+              [class.border-black]="selectedQualityId() === opt.id"
+              class="flex-1 py-3 px-2 rounded-xl border border-black/5 text-center transition-all hover:border-black/20"
+            >
+              <p class="text-xs font-bold uppercase tracking-wider">{{ opt.name }}</p>
+              <p class="text-[9px] opacity-60 mt-1">{{ opt.id === 'high' ? 'Original' : (opt.id === 'medium' ? '1024px' : '512px') }}</p>
+            </button>
+          }
+        </div>
+      </section>
+
+      <!-- Action Button -->
+      <button 
+        [disabled]="!selectedFile() || isGenerating()"
+        (click)="generateHeadshot()"
+        class="w-full py-5 rounded-2xl bg-black text-white font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/90 transition-all shadow-xl shadow-black/10"
+      >
+        @if (isGenerating()) {
+          <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          <span>Generating Headshot...</span>
+        } @else {
+          <mat-icon>auto_fix_high</mat-icon>
+          <span>Generate Professional Headshot</span>
+        }
+      </button>
+
+      @if (error()) {
+        <div class="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm flex items-center gap-3">
+          <mat-icon>error_outline</mat-icon>
+          {{ error() }}
+        </div>
+      }
+    </div>
+
+    <!-- Right Column: Result -->
+    <div class="lg:col-span-7">
+      <div class="sticky top-28">
+        <div class="bg-white rounded-[2rem] shadow-2xl shadow-black/5 border border-black/5 overflow-hidden min-h-[600px] flex flex-col">
+          
+          <!-- Result Header -->
+          <div class="p-6 border-b border-black/5 flex justify-between items-center bg-white">
+            <h3 class="font-semibold text-muted uppercase tracking-widest text-[10px]">Preview Result</h3>
+            @if (generatedImage()) {
+              <button (click)="downloadImage()" class="flex items-center gap-2 text-xs font-semibold bg-black text-white px-4 py-2 rounded-full hover:bg-black/80 transition-all">
+                <mat-icon class="text-sm">download</mat-icon>
+                Download
+              </button>
+            }
+          </div>
+
+          <!-- Result Content -->
+          <div class="flex-1 relative flex items-center justify-center p-8 bg-[#fafafa]">
+            @if (generatedImage()) {
+              <div class="relative group max-w-md w-full">
+                <img [src]="generatedImage()" alt="Generated professional headshot" class="w-full rounded-2xl shadow-2xl border border-black/5" referrerpolicy="no-referrer">
+                <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/10 pointer-events-none"></div>
+              </div>
+            } @else if (isGenerating()) {
+              <div class="text-center space-y-6 max-w-xs">
+                <div class="relative mx-auto w-24 h-24">
+                  <div class="absolute inset-0 border-4 border-black/5 rounded-full"></div>
+                  <div class="absolute inset-0 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <div class="space-y-2">
+                  <p class="font-semibold">Developing your photo...</p>
+                  <p class="text-xs text-muted">Our AI is adjusting lighting, background, and attire to match your selected style.</p>
+                </div>
+              </div>
+            } @else {
+              <div class="text-center space-y-4 opacity-30">
+                <mat-icon class="text-6xl">photo_library</mat-icon>
+                <p class="text-sm font-medium">Your professional headshot will appear here</p>
+              </div>
+            }
+          </div>
+
+          <!-- Result Footer -->
+          <div class="p-8 bg-white border-t border-black/5">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center shrink-0">
+                <mat-icon class="text-black/40">info</mat-icon>
+              </div>
+              <div class="space-y-1">
+                <p class="text-xs font-semibold">Pro Tip</p>
+                <p class="text-xs text-muted leading-relaxed">For the best results, use a clear, well-lit selfie where your face is fully visible. Avoid busy backgrounds or heavy filters in your original photo.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="max-w-7xl mx-auto p-8 text-center border-t border-black/5 mt-12">
+    <p class="text-[10px] uppercase tracking-widest text-muted">Powered by Gemini 2.5 Flash Image • AI Headshot Pro © 2024</p>
+  </footer>
+</div>
